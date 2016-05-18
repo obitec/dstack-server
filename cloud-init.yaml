@@ -1,0 +1,13 @@
+#cloud-config
+groups:
+  - docker: [canary,]
+users:
+  - name: canary
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    groups: [sudo, docker]
+    shell: /bin/bash
+    uid: 1801
+runcmd:
+  - curl -L https://github.com/docker/compose/releases/download/1.7.1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+  - chmod +x /usr/local/bin/docker-compose
+  - mkdir -p /srv/certs /srv/config /srv/htdocs /srv/build /srv/apps/default

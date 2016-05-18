@@ -1,0 +1,4 @@
+invoke==0.12.2
+python-digitalocean==1.8.1
+Fabric3==1.11.1.post1
+bundlewrap>=2.5.2
