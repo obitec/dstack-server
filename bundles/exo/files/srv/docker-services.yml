@@ -1,0 +1,29 @@
+exodata:
+  restart: on-failure:5
+  image: teknologist/exo-data
+mysqldata:
+  restart: on-failure:5
+  image: teknologist/mysql-docker-data
+mysql:
+  restart: on-failure:5
+  image: mysql/mysql-server:latest
+  environment:
+    MYSQL_DATABASE: exo
+    MYSQL_USER: exo
+    MYSQL_PASSWORD: changeme
+    MYSQL_ROOT_PASSWORD: changeme
+  volumes_from:
+  - mysqldata
+exoplf:
+  restart: on-failure:5
+  ports:
+  - 8080:8080/tcp
+  image: teknologist/ubuntu-jdk7-exo-mysql
+  environment:
+    MYSQL_DATABASE: exo
+    MYSQL_USER: exo
+    MYSQL_PASSWORD: changeme
+  links:
+  - mysql
+  volumes_from:
+  - exodata
