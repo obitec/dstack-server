@@ -35,6 +35,9 @@ actions = {
         'command': "chmod +x /usr/local/bin/docker-compose",
         # 'expected_return_code': 0,
     },
+    'start_containers': {
+        'command': "docker-compose -f /srv/docker-services.yml up -d nginx-proxy letsencrypt-plugin"
+    }
 }
 
 # pkg_pip = {

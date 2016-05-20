@@ -92,8 +92,3 @@ def install_image_factory():
         run('wget https://github.com/obitec/wheel-factory/archive/master.tar.gz')
         run('tar -zxvf master.tar.gz --strip=1')
         run('rm master.tar.gz')
-
-
-def nginx_ssl_setup():
-    upload_project(os.path.join(env.local_dir, 'docker-services.yml'), '/srv/', use_sudo=True)
-    run('docker-compose -f /srv/docker-services.yml up -d nginx-proxy letsencrypt-plugin')

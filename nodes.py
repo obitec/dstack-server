@@ -1,6 +1,6 @@
 nodes = {
     'node1': {
-        'hostname': "gauseng",
+        'hostname': "exo",
         'bundles': (
             "django_server",
         ),
