@@ -10,7 +10,7 @@ users = {
         "home": "/home/canary",
         # "password_hash": "$6$abcdef$ghijklmnopqrstuvwxyz",
         "shell": "/bin/bash",
-        "uid": 1101,
+        "uid": 1000,
     },
 }
 
@@ -28,11 +28,11 @@ pkg_apt = {
 
 actions = {
     'install_compose': {
-        'command': "curl -L https://github.com/docker/compose/releases/download/1.7.1/"
-                   "docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose",
+        'command': "sudo sudo -- sh -c 'curl -L https://github.com/docker/compose/releases/download/1.7.1/"
+                   "docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose'",
     },
     'fix_permission': {
-        'command': "chmod +x /usr/local/bin/docker-compose",
+        'command': "sudo chmod +x /usr/local/bin/docker-compose",
         # 'expected_return_code': 0,
     },
     'start_containers': {
