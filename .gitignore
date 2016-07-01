@@ -63,5 +63,5 @@ target/
 
 .idea/
 .env
-
+*.env
 .secrets.cfg

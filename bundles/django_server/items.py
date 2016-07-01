@@ -10,7 +10,7 @@ users = {
         "home": "/home/canary",
         # "password_hash": "$6$abcdef$ghijklmnopqrstuvwxyz",
         "shell": "/bin/bash",
-        "uid": 1000,
+        "uid": 4801,
     },
 }
 

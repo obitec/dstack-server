@@ -24,7 +24,6 @@ services:
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - ./templates:/etc/docker-gen/templates:ro
-    # workaround for -only-exposed bug
     expose:
       - 1024
     networks:
@@ -46,50 +45,9 @@ services:
     environment:
       - NGINX_DOCKER_GEN_CONTAINER=srv_docker_gen
 
-  wheel-factory:
-    image: obitec/wheel-factory
-    build:
-      context: /srv/build/factory
-      dockerfile: Dockerfile
-    volumes:
-      - /srv/build/wheelhouse:/wheelhouse
-      - /srv/build/archive:/archive
-      - /srv/build/build-requirements.txt:/app/requirements.txt
-    environment:
-      - HDF5_DIR=/usr/lib/x86_64-linux-gnu/hdf5/serial/
-      - WHEELHOUSE=/wheelhouse
-      - PIP_WHEEL_DIR=/wheelhouse
-      - PIP_FIND_LINKS=/archive
-      - VIRTUAL_ENV=/env
-      - CEXT=True
-
 networks:
   proxy:
 
 volumes:
   media:
   static:
-
-
-#bind:
-#  image: ab77/bind
-#  container_name: bind
-#  ports:
-#    - "53:53/udp"
-#  volumes:
-#    - /opt/smartproxy/data:/data
-#  net: host
-#  restart: always
-#
-#
-#sniproxy:
-#  image: ab77/sniproxy
-#  container_name: sniproxy
-#  net: host
-#  ports:
-#    - "80:80"
-#    - "443:443"
-#  volumes:
-#    - /opt/smartproxy/data:/data
-#  restart: always
-

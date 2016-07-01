@@ -58,7 +58,7 @@ def status(name: str = 'default'):
     # key_file = [i.strip('-').replace('"', '').split('=') for i in config.split('\n')][3][1]
 
 
-def create_ssh_config(name: str = 'default', dry_run: bool = False):
+def create_ssh_config(name: str = 'default', dry_run: bool = False,):
     """ Create ssh config entry from docker-machine inspect
 
     """
@@ -82,8 +82,13 @@ def create_ssh_config(name: str = 'default', dry_run: bool = False):
             f.write(ssh_config)
 
 
-def configure_server():
-    local('bw apply node1')
+def configure_server(name: str = 'default', ):
+    machine('scp setup.sh {name}:/root/setup.sh'.format(**locals()))
+    machine('scp docker-compose.yml {name}:/root/docker-compose.yml'.format(**locals()))
+    machine('scp {name}.env {name}:/root/.env'.format(**locals()))
+    machine('ssh {name} chmod 700 setup.sh'.format(**locals()))
+    machine('ssh {name} ./setup.sh'.format(**locals()))
+    #local('bw apply node1')
 
 
 def install_image_factory():
