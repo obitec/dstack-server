@@ -45,6 +45,15 @@ services:
     environment:
       - NGINX_DOCKER_GEN_CONTAINER=srv_docker_gen
 
+  registry:
+    image: registry:2
+    volumes:
+      - ${PWD}/registry.yaml:/etc/docker/registry/config.yml
+    ports:
+      - "5000:5000"
+
+
+
 networks:
   proxy:
 

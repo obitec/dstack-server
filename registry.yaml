@@ -1,0 +1,28 @@
+version: 0.1
+# log:
+#   fields:
+#     service: registry
+storage:
+  s3:
+    accesskey: ${accesskey}
+    secretkey: ${secretkey}
+    region: eu-west-1
+    bucket: ${bucket}
+    #encrypt: true
+    #secure: true
+    # v4auth: true
+    #chunksize: 5242880
+    # rootdirectory: /s3/object/registry
+  # cache:
+  #   blobdescriptor: inmemory
+  # filesystem:
+  #   rootdirectory: /var/lib/registry
+http:
+  addr: :5000
+  # headers:
+    # X-Content-Type-Options: [nosniff]
+# health:
+#   storagedriver:
+#     enabled: true
+#     interval: 10s
+# threshold: 3
