@@ -2,7 +2,7 @@
 
 if [ -f ".env" ]
 then
-    export $(cat .env | grep -v ^# | xargs) 
+    export $(cat .env | grep -v ^# | xargs)
 else
     echo "No .env file"
     exit 1
@@ -40,7 +40,7 @@ adduser ${USER_NAME} docker
 service docker restart
 
 apt-get update -y
-apt-get install -y htop tree vim git jq
+apt-get install -y htop tree vim git jq mosh tmux curl rsync
 
 mkdir -p /srv/apps/default
 mkdir -p /srv/nginx/templates
@@ -62,4 +62,10 @@ rm -rf .env
 rm -rf setup.sh
 
 cd /srv/nginx && docker-compose up -d
+
+chat_id=$(curl -sS -X POST ${TELEGRAM_URL}/getUpdates | jq .result[2].message.chat.id)
+curl -sS -X POST ${TELEGRAM_URL}/sendMessage -d text="Hello, World! I'm ${USER_NAME}@${HOST_NAME}, living at ${IP}" -d chat_id=${chat_id} | jq .
+curl -sS -X POST ${TELEGRAM_URL}/sendMessage -d text="Here's my public key:\n${PUB_KEY}" -d chat_id=${chat_id} | jq .
+curl -sS -X POST ${TELEGRAM_URL}/sendMessage -d text="Send me your's and I'll authorize access." -d chat_id=${chat_id} | jq .
+
 history -c && history -w
