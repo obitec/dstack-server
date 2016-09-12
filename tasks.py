@@ -1,18 +1,24 @@
 import json
-
-from fabric.api import env, local, run, cd
-from fabric.contrib.project import upload_project
-from fabric.operations import sudo
-from fabric.main import load_settings
+#from fabric.api import env, local, run, cd
+#from fabric.operations import sudo
+#from fabric.main import load_settings
 import os
+import invoke
+from invoke import run, task, env
+from invoke.util import cd, contextmanager
+from dotenv import load_dotenv
+from os import environ as env
 
-settings = load_settings('.env')
-if not settings:
-    raise RuntimeError('.env file is needed')
-env.update(settings)
-env.use_ssh_config = True
+# settings = load_settings('.env')
+# if not settings:
+#     raise RuntimeError('.env file is needed')
+# env.update(settings)
+# env.use_ssh_config = True
+
+load_dotenv('.env')
 
 
+@task()
 def machine(cmd: str = '--help', dry_run: bool = False, capture: bool = False):
     """ Wrapper for docker-machine
 
@@ -27,6 +33,7 @@ def machine(cmd: str = '--help', dry_run: bool = False, capture: bool = False):
         print('docker-machine {cmd}'.format(cmd=cmd))
 
 
+@task()
 def create(driver: str = 'virtualbox', name: str = 'default', dry_run=False):
     """Create a docker machine
     Automatically uses key and value pairs from .env
@@ -45,6 +52,7 @@ def create(driver: str = 'virtualbox', name: str = 'default', dry_run=False):
     machine(cmd=command, dry_run=dry_run)
 
 
+@task()
 def status(name: str = 'default'):
     """ Attempts to parse docker-machine ip, config and status to get
     the path to the key file and the ip address.
@@ -58,12 +66,25 @@ def status(name: str = 'default'):
     # key_file = [i.strip('-').replace('"', '').split('=') for i in config.split('\n')][3][1]
 
 
+@task()
 def create_ssh_config(name: str = 'default', dry_run: bool = False,):
     """ Create ssh config entry from docker-machine inspect
 
     """
-    config = machine('inspect {name}'.format(name=name), capture=True)
-    config = json.loads(config)
+    if not dry_run:
+        config = machine('inspect {name}'.format(name=name), capture=True)
+        config = json.loads(config)
+    else:
+        config = {
+            'Driver': {
+                'MachineName': name,
+                'IPAddress': '0.0.0.0',
+                'SSHPort': 22,
+                'SSHUser': 'root',
+                'SSHKeyPath': '~/.ssh/id_rsa'
+            }
+        }
+
     home = os.path.expanduser('~')
 
     ssh_config = """
@@ -82,15 +103,24 @@ def create_ssh_config(name: str = 'default', dry_run: bool = False,):
             f.write(ssh_config)
 
 
-def configure_server(name: str = 'default', ):
-    machine('scp setup.sh {name}:/root/setup.sh'.format(**locals()))
-    machine('scp docker-compose.yml {name}:/root/docker-compose.yml'.format(**locals()))
-    machine('scp {name}.env {name}:/root/.env'.format(**locals()))
-    machine('ssh {name} chmod 700 setup.sh'.format(**locals()))
-    machine('ssh {name} ./setup.sh'.format(**locals()))
+@task()
+def configure_server(name: str = 'default', dry_run: bool = False):
+    machine('scp setup.sh {name}:/root/setup.sh'.format(**locals()), dry_run=dry_run)
+    machine('scp docker-compose.yml {name}:/root/docker-compose.yml'.format(**locals()), dry_run=dry_run)
+    machine('scp env/{name} {name}:/root/.env'.format(**locals()), dry_run=dry_run)
+    machine('ssh {name} chmod 700 setup.sh'.format(**locals()), dry_run=dry_run)
+    machine('ssh {name} ./setup.sh'.format(**locals()), dry_run=dry_run)
     #local('bw apply node1')
 
 
+@task()
+def do_it(name: str = 'default', driver: str = 'digitalocean', dry_run: bool = False):
+    create(name=name, driver=driver, dry_run=dry_run)
+    configure_server(name=name, dry_run=dry_run)
+    create_ssh_config(name=name, dry_run=dry_run)
+
+
+@task()
 def install_image_factory():
     # run('docker pull obitec/wheel-factory')
     with cd('/srv/build/'):
