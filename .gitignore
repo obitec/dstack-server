@@ -65,3 +65,4 @@ target/
 .env
 *.env
 .secrets.cfg
+venv
