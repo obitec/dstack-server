@@ -18,8 +18,8 @@ from os import environ as env
 load_dotenv('.env')
 
 
-@task()
-def machine(cmd: str = '--help', dry_run: bool = False, capture: bool = False):
+@task
+def machine(ctx, cmd: str = '--help', dry_run: bool = False, capture: bool = False):
     """ Wrapper for docker-machine
 
     :param cmd: The docker-machine command to execute, see --help for details
@@ -28,13 +28,13 @@ def machine(cmd: str = '--help', dry_run: bool = False, capture: bool = False):
     :return:
     """
     if not dry_run:
-        return local('docker-machine {cmd}'.format(cmd=cmd), capture=capture)
+        return run('docker-machine {cmd}'.format(cmd=cmd), capture=capture)
     else:
         print('docker-machine {cmd}'.format(cmd=cmd))
 
 
-@task()
-def create(driver: str = 'virtualbox', name: str = 'default', dry_run=False):
+@task
+def create(ctx, driver: str = 'virtualbox', name: str = 'default', dry_run=False):
     """Create a docker machine
     Automatically uses key and value pairs from .env
 
@@ -49,30 +49,32 @@ def create(driver: str = 'virtualbox', name: str = 'default', dry_run=False):
         key=k, value=v) for k, v in env.items() if k.startswith(driver + '-')])
 
     command = template.format(driver=driver, config=config, name=name)
-    machine(cmd=command, dry_run=dry_run)
+    machine(ctx, cmd=command, dry_run=dry_run)
 
 
-@task()
-def status(name: str = 'default'):
+@task
+def status(ctx, name: str = 'default'):
     """ Attempts to parse docker-machine ip, config and status to get
     the path to the key file and the ip address.
 
     :param name:
     :return:
     """
-    # ip = machine('ip {name}'.format(name=name), capture=True)
-    # status = machine('status {name}'.format(name=name), capture=True)
+    print('Everything is awesome!!')
+    ip = machine(ctx, 'ip {name}'.format(name=name), capture=True)
+    status = machine(ctx, 'status {name}'.format(name=name), capture=True)
     # [3] is tlskey and [1] is the path
-    # key_file = [i.strip('-').replace('"', '').split('=') for i in config.split('\n')][3][1]
+    key_file = [i.strip('-').replace('"', '').split('=') for i in config.split('\n')][3][1]
+    print(key_file)
 
 
-@task()
-def create_ssh_config(name: str = 'default', dry_run: bool = False,):
+@task
+def create_ssh_config(ctx, name: str = 'default', dry_run: bool = False,):
     """ Create ssh config entry from docker-machine inspect
 
     """
     if not dry_run:
-        config = machine('inspect {name}'.format(name=name), capture=True)
+        config = machine(ctx, 'inspect {name}'.format(name=name), capture=True)
         config = json.loads(config)
     else:
         config = {
@@ -103,25 +105,25 @@ def create_ssh_config(name: str = 'default', dry_run: bool = False,):
             f.write(ssh_config)
 
 
-@task()
-def configure_server(name: str = 'default', dry_run: bool = False):
-    machine('scp setup.sh {name}:/root/setup.sh'.format(**locals()), dry_run=dry_run)
-    machine('scp docker-compose.yml {name}:/root/docker-compose.yml'.format(**locals()), dry_run=dry_run)
-    machine('scp env/{name} {name}:/root/.env'.format(**locals()), dry_run=dry_run)
-    machine('ssh {name} chmod 700 setup.sh'.format(**locals()), dry_run=dry_run)
-    machine('ssh {name} ./setup.sh'.format(**locals()), dry_run=dry_run)
+@task
+def configure_server(ctx, name: str = 'default', dry_run: bool = False):
+    machine(ctx, 'scp setup.sh {name}:/root/setup.sh'.format(**locals()), dry_run=dry_run)
+    machine(ctx, 'scp docker-compose.yml {name}:/root/docker-compose.yml'.format(**locals()), dry_run=dry_run)
+    machine(ctx, 'scp env/{name} {name}:/root/.env'.format(**locals()), dry_run=dry_run)
+    machine(ctx, 'ssh {name} chmod 700 setup.sh'.format(**locals()), dry_run=dry_run)
+    machine(ctx, 'ssh {name} ./setup.sh'.format(**locals()), dry_run=dry_run)
     #local('bw apply node1')
 
 
-@task()
-def do_it(name: str = 'default', driver: str = 'digitalocean', dry_run: bool = False):
-    create(name=name, driver=driver, dry_run=dry_run)
-    configure_server(name=name, dry_run=dry_run)
-    create_ssh_config(name=name, dry_run=dry_run)
+@task
+def do_it(ctx, name: str = 'default', driver: str = 'digitalocean', dry_run: bool = False):
+    create(ctx, name=name, driver=driver, dry_run=dry_run)
+    configure_server(ctx, name=name, dry_run=dry_run)
+    create_ssh_config(ctx, name=name, dry_run=dry_run)
 
 
-@task()
-def install_image_factory():
+@task
+def install_image_factory(ctx):
     # run('docker pull obitec/wheel-factory')
     with cd('/srv/build/'):
         run('wget https://github.com/obitec/wheel-factory/archive/master.tar.gz')

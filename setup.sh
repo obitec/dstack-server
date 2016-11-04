@@ -19,7 +19,7 @@ chmod 700 /home/${USER_NAME}/.ssh
 
 cp /root/.ssh/authorized_keys /home/${USER_NAME}/.ssh/
 ssh-keygen -q -t rsa -b 2048 -N '' -f /home/${USER_NAME}/.ssh/id_rsa
-sed -i  s/root/${USER_NAME}/g .ssh/id_rsa.pub
+sed -i  s/root/${USER_NAME}/g /home/${USER_NAME}/.ssh/id_rsa.pub
 chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.ssh/
 
 sed -i 's/#\?Port .\+/Port 8622/g' /etc/ssh/sshd_config
@@ -36,6 +36,7 @@ curl -X POST --data-urlencode 'payload={"text": "'"${PUB_KEY}"'"}' ${SLACK_URL}
 curl -L https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
+groupadd docker
 adduser ${USER_NAME} docker
 service docker restart
 
@@ -63,7 +64,8 @@ rm -rf setup.sh
 
 cd /srv/nginx && docker-compose up -d
 
-chat_id=$(curl -sS -X POST ${TELEGRAM_URL}/getUpdates | jq .result[2].message.chat.id)
+# TODO Get more sustainable way to get chat_id. Maybe make it variable?
+chat_id=$(curl -sS -X POST ${TELEGRAM_URL}/getUpdates | jq .result[0].message.chat.id)
 curl -sS -X POST ${TELEGRAM_URL}/sendMessage -d text="Hello, World! I'm ${USER_NAME}@${HOST_NAME}, living at ${IP}" -d chat_id=${chat_id} | jq .
 curl -sS -X POST ${TELEGRAM_URL}/sendMessage -d text="Here's my public key:\n${PUB_KEY}" -d chat_id=${chat_id} | jq .
 curl -sS -X POST ${TELEGRAM_URL}/sendMessage -d text="Send me your's and I'll authorize access." -d chat_id=${chat_id} | jq .
