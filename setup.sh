@@ -22,6 +22,7 @@ ssh-keygen -q -t rsa -b 2048 -N '' -f /home/${USER_NAME}/.ssh/id_rsa
 sed -i  s/root/${USER_NAME}/g /home/${USER_NAME}/.ssh/id_rsa.pub
 chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.ssh/
 
+# TODO: Make optional
 sed -i 's/#\?Port .\+/Port 8622/g' /etc/ssh/sshd_config
 sed -i 's/^#\?PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
 sed -i 's/^#\?PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
@@ -33,9 +34,18 @@ service ssh restart
 PUB_KEY=$(cat /home/${USER_NAME}/.ssh/id_rsa.pub)
 curl -X POST --data-urlencode 'payload={"text": "'"${PUB_KEY}"'"}' ${SLACK_URL}
 
+# TODO: Also check/install docker
+REPO="deb https://apt.dockerproject.org/repo ubuntu-xenial main"
+echo ${REPO} | tee /etc/apt/sources.list.d/docker.list
+apt-get update -y
+apt-get install -y docker-engine
+service docker start
+systemctl enable docker
+
 curl -L https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
+# usermod -aG docker $USER  # Why does this not work?
 groupadd docker
 adduser ${USER_NAME} docker
 service docker restart
